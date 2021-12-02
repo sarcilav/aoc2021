@@ -28,12 +28,11 @@
     :up      [hpos d (- aim v)]
     :down    [hpos d (+ aim v)]))
 
-(defn part2 [numbers]
+(defn part2 [input]
   (->> input
      (reduce eval-2 [0 0 0])
      (take 2)
-     (apply *))
-)
+     (apply *)))
 
 (part1 input) ; 2039256
 (part2 input) ; 1856459736
