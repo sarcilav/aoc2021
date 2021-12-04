@@ -22,24 +22,22 @@
 (defn mark [board x]
   (map #(replace {x nil} %) board))
 
-(defn at-least-one-line-nil [board]
+(defn row-check [board]
   (pos? (count (filter #(every? nil? %) board))))
 
-(defn at-least-one-column-nil [board]
+(defn column-check [board]
   (->> board
      (apply map vector)
-     (filter #(every? nil? %))
-     (count)
-     (pos?)))
+     (row-check)))
 
 (defn bingo? [board]
-  (or (at-least-one-column-nil board)
-     (at-least-one-line-nil board)))
+  (or (row-check board)
+     (column-check board)))
 
 (defn score [curr board]
   (* curr (apply + (filter some? (flatten board)))))
 
-(defn winner-boards-score [in]
+(defn winner-boards-scores [in]
   (let [[order boards] (order-and-boards in)]
     (loop [curr (first order)
            [ftail & tail] (rest order)
@@ -54,6 +52,6 @@
                  (vec (concat scores (map #(score curr %) winners))))
           (vec (concat scores (map #(score curr %) winners))))))))
 
-(def scores (winner-boards-score input))
+(def scores (winner-boards-scores input))
 (first scores) ; 33462
 (peek scores) ; 30070
