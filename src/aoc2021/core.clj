@@ -1,6 +1,13 @@
-(ns aoc2021.core)
+(ns aoc2021.core
+  (:require [clojure.java.io :as io]))
 
-(defn foo
-  "I don't do a whole lot."
-  [x]
-  (println x "Hello, World!"))
+(defn parse-long [s]
+  (Long/parseLong s))
+
+(defn string-to-lvector [s]
+  (->> s
+     (re-seq #"\d+")
+     (mapv parse-long)))
+
+(defn read-file [name]
+  (slurp (io/resource name)))
