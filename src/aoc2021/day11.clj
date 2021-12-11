@@ -25,43 +25,42 @@
                  (not= 0 dx dy))]
     [nx ny]))
 
-(defn first-substep [lvls]
-  (mapv #(mapv inc %) lvls))
+(defn inc-grid [state]
+  (mapv #(mapv inc %) state))
 
-(defn second-substep [lvls]
-  (loop [flashing-octos #{}
-         l lvls]
-    (let [new-flashes (for [x (range size)
-                            y (range size)
-                            :let [v (get-in l [x y])]
-                            :when (and (> v 9)
-                                     (nil? (flashing-octos [x y])))]
-                        [x y])]
-      (if (empty? new-flashes)
-        {:flashes flashing-octos
-         :lvls l}
-        (recur (set/union flashing-octos (set new-flashes))
-               (reduce (fn [nl pos]
-                         (update-in nl pos inc))
-                       l
-                       (mapcat adj-locs new-flashes)))))))
+(defn flash [state]
+  (loop [flashing-locs #{}
+         s state]
+    (let [new-locs (for [x (range size)
+                         y (range size)
+                         :let [v (get-in s [x y])]
+                         :when (and (> v 9)
+                                  (nil? (flashing-locs [x y])))]
+                     [x y])]
+      (if (empty? new-locs)
+        {:flashes flashing-locs
+         :state s}
+        (recur (set/union flashing-locs (set new-locs))
+               (reduce (fn [ns loc]
+                         (update-in ns loc inc))
+                       s
+                       (mapcat adj-locs new-locs)))))))
+(defn deplete [{f :flashes
+                s :state}]
+  (reduce (fn [ns loc]
+            (assoc-in ns loc 0))
+          s f))
 
-(defn third-substep [{flashes :flashes
-                      lvls :lvls}]
-  (reduce (fn [nl pos]
-            (assoc-in nl pos 0))
-          lvls flashes))
-
-(defn step [[lvls c]]
-  (let [{flashes :flashes :as step-12} (second-substep (first-substep lvls))]
-    [(third-substep step-12) (+ c (count flashes))]))
+(defn step [[state c]]
+  (let [{flashes :flashes :as step-12} (flash (inc-grid state))]
+    [(deplete step-12) (+ c (count flashes))]))
 
 (def steps (iterate step [input 0]))
 
-(nth steps 100) ; [[[6 2 2 7 5 5 6 3 4 1] [2 2 2 9 6 5 6 9 6 6] [2 2 2 6 8 6 6 9 3 0] [2 2 2 7 5 9 9 1 3 0] [2 2 8 5 4 5 1 1 2 2] [2 2 7 4 4 5 8 1 1 1] [2 2 8 5 4 5 8 5 1 1] [3 7 5 8 7 8 4 4 5 1] [0 8 7 0 0 0 0 5 4 6] [0 0 0 0 0 0 0 0 6 4]] 1773]
+(second (nth steps 100)) ; 1773
 
-(defn total [[lvls]]
-  (apply + (flatten lvls)))
+(defn total [[state]]
+  (apply + (flatten state)))
 
 (count (take-while #(> (total %) 0) steps)) ; 494
 
