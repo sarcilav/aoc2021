@@ -15,15 +15,15 @@
 (def size 10)
 (def input (parse-input (aoc/read-file "in11")))
 
-(defn adj-locs [[x y]]
-  (for [dx [-1 0 1]
-        dy [-1 0 1]
-        :let [nx (+ x dx)
-              ny (+ y dy)]
-        :when (and (>= nx 0) (>= ny 0)
-                 (< nx size)(< ny size)
-                 (not= 0 dx dy))]
-    [nx ny]))
+(defn adj-locs [[i j]]
+  (for [di [-1 0 1]
+        dj [-1 0 1]
+        :let [ni (+ i di)
+              nj (+ j dj)]
+        :when (and (>= ni 0) (>= nj 0)
+                 (< ni size) (< nj size)
+                 (not= 0 di dj))]
+    [ni nj]))
 
 (defn inc-grid [state]
   (mapv #(mapv inc %) state))
@@ -31,12 +31,11 @@
 (defn flash [state]
   (loop [flashing-locs #{}
          s state]
-    (let [new-locs (for [x (range size)
-                         y (range size)
-                         :let [v (get-in s [x y])]
-                         :when (and (> v 9)
-                                  (nil? (flashing-locs [x y])))]
-                     [x y])]
+    (let [new-locs (for [[i vals] (map-indexed vector s)
+                         [j val] (map-indexed vector vals)
+                         :when  (and (> val 9)
+                                   (nil? (flashing-locs [i j])))]
+                     [i j])]
       (if (empty? new-locs)
         {:flashes flashing-locs
          :state s}
@@ -45,6 +44,7 @@
                          (update-in ns loc inc))
                        s
                        (mapcat adj-locs new-locs)))))))
+
 (defn deplete [{f :flashes
                 s :state}]
   (reduce (fn [ns loc]
